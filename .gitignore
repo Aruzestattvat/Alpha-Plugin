@@ -1,0 +1,31 @@
+# 私人运行时数据，禁止提交
+state.json
+watched.json
+realtime.json
+avatars/
+shots/
+*.sqlite3
+*.sqlite3-*
+*.log
+.tmp/
+dist/
+__pycache__/
+.DS_Store
+*.bak*
+*.bak-*
+
+# 密钥/环境（若误放入项目目录也不提交）
+secrets.env
+.env
+*.pem
+*.key
+
+# 本地交接文档原稿（含个人信息），仅提交 docs/HANDOFF.md 脱敏版
+/HANDOFF.md
+
+# Swift 编译缓存
+.modulecache/
+*.pcm
+
+# 运行时锁文件
+*.lock

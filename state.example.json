@@ -1,0 +1,11 @@
+{
+  "updated_at": 1760912345,
+  "chats": [
+    {"id": "example-77",  "name": "示例会话",     "score": 78, "delta": 3,  "avatar": null, "reason": "对方主动分享日常，回复变快", "unread": 2},
+    {"id": "example-83",  "name": "示例会话",   "score": 64, "delta": 1,  "avatar": null, "reason": "正常闲聊", "unread": 0},
+    {"id": "example-44", "name": "示例会话",     "score": 46, "delta": -2, "avatar": null, "reason": "回复变慢、语气公事化", "unread": 0},
+    {"id": "example-36",  "name": "示例会话",     "score": 91, "delta": 0,  "avatar": null, "reason": "稳定", "unread": 1},
+    {"id": "example-19", "name": "示例会话",     "score": 55, "delta": -1, "avatar": null, "reason": "聊得少", "unread": 0},
+    {"id": "example-79","name": "示例会话",  "score": 52, "delta": 0,  "avatar": null, "reason": "群聊", "unread": 6}
+  ]
+}

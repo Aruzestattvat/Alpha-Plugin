@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>知间 · 聊天关系</title>
+<style>
+  :root{--bg:#111318;--panel:#171a21;--panel2:#1d212a;--line:#2a2f3a;
+    --text:#e8eaf0;--muted:#8b93a7;--accent:#5b8cff;--green:#34c759;
+    --orange:#ff9f0a;--red:#ff453a;--radius:12px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC",sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:26px 20px 96px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+  /* ICON SLOT: brand icon in header. Replace assets/zhijian-logo.png; see assets/ICON_SLOT.md */
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .brand-icon{width:46px;height:46px;border-radius:12px;border:1px dashed #3b4252;
+    background:var(--panel2);display:flex;align-items:center;justify-content:center;flex:none;overflow:hidden}
+  .brand-icon img{width:100%;height:100%;object-fit:cover;border-radius:11px;display:block}
+  .brand-fallback{display:none;font-size:20px;font-weight:700;color:var(--accent)}
+  .indices{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
+  .idx{font-size:11px;border:1px solid var(--line);padding:1px 8px;border-radius:999px;
+    font-variant-numeric:tabular-nums;color:var(--muted)}
+  .idx.close.s-hi{color:#4ade80;border-color:#1f5a38;background:#12301f}
+  .idx.close.s-mid{color:#ffb340;border-color:#5a4622;background:#2a2116}
+  .idx.close.s-lo{color:#ff8a80;border-color:#5a2a2a;background:#2a1a1a}
+  .idx.romantic.unknown{color:#667085}
+  .idx.romantic.none{color:#8b93a7}
+  .idx.romantic.warm{color:#7fb2ff;border-color:#2f4a7a;background:#12233a}
+  .idx.romantic.mid{color:#c79bff;border-color:#4a2f7a;background:#22183a}
+  .idx.romantic.hot{color:#ff8ab8;border-color:#6a2f4a;background:#2a1620}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  input[type=search]{flex:1;min-width:180px;background:var(--panel);border:1px solid var(--line);
+    color:var(--text);padding:9px 12px;border-radius:9px;outline:none}
+  input[type=search]:focus{border-color:var(--accent)}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);
+    padding:7px 11px;border-radius:8px;cursor:pointer;font-size:13px}
+  button:hover{border-color:#3b4252}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  button.ghost{background:transparent}
+  button.tiny{padding:3px 8px;font-size:12px;border-radius:7px;flex:none}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .row{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:none}
+  .row:hover{background:var(--panel2)}
+  .avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none;
+    background:#2b3240;display:flex;align-items:center;justify-content:center;
+    font-weight:600;color:#fff;font-size:15px;overflow:hidden}
+  .avatar img{width:100%;height:100%;object-fit:cover}
+  .meta{flex:1;min-width:0}
+  .name{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:1px 6px;border-radius:6px}
+  .unread{background:#3a2f1d;color:#ffc46b;border-color:#5a4622}
+  .running{color:var(--accent);border-color:#2f4a7a;background:#182338}
+  .preview{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .score{font-weight:700;font-variant-numeric:tabular-nums;min-width:44px;text-align:right}
+  .s-hi{color:var(--green)} .s-mid{color:var(--orange)} .s-lo{color:var(--red)}
+  .reason{color:var(--muted);font-size:12px;max-width:230px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .usage{color:#7d879c;font-size:11px;margin-top:3px;font-variant-numeric:tabular-nums}
+  .trend{display:inline-flex;align-items:center;gap:4px;margin-top:3px;font-size:11px;
+    color:#a9b2c6;font-variant-numeric:tabular-nums}
+  .trend.up{color:#4ade80} .trend.down{color:#ff8a80} .trend.flat{color:#9aa4b8} .trend.muted{color:#667085}
+  .rank{color:#7d879c;font-size:11px;margin-top:2px}
+  .dims{color:#8b95a8;font-size:11px;margin-top:2px;font-variant-numeric:tabular-nums}
+  .trend-visuals{display:flex;flex-direction:column;gap:4px;flex:none;width:100px;margin:0 2px}
+  .tv{display:flex;flex-direction:column;align-items:center;line-height:1}
+  .tv svg{display:block}
+  .tv .tv-label{font-size:9.5px;color:#7d879c;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);flex:none}
+  .prog{width:110px;height:6px;background:#232838;border-radius:4px;overflow:hidden;flex:none}
+  .prog i{display:block;height:100%;background:var(--accent);width:0}
+  .footer{position:fixed;left:0;right:0;bottom:0;background:rgba(17,19,24,.95);
+    backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:11px 20px;
+    display:flex;justify-content:center;gap:12px;align-items:center;z-index:10}
+  .footer .count{color:var(--muted);font-size:13px}
+  .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);
+    background:#1e2a3d;border:1px solid #33507a;color:#cfe0ff;padding:9px 16px;border-radius:10px;
+    font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:80}
+  .toast.show{opacity:1}
+  .empty{color:var(--muted);padding:36px;text-align:center}
+  .section-title{font-size:13px;color:var(--muted);margin:20px 0 8px;display:flex;justify-content:space-between}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:22px;z-index:50}
+  .modal.show{display:flex}
+  .sheet{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:820px;width:100%;max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line)}
+  .sheet-body{overflow:auto;padding:12px 16px 20px}
+  .scorebar{display:flex;gap:14px;align-items:baseline;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .scorebar b{font-size:24px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0 16px}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+  .stat .k{color:var(--muted);font-size:11px}
+  .stat .v{font-size:15px;font-weight:600;margin-top:2px}
+  .chunk{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--panel2)}
+  .chunk .h{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:4px}
+  .chunk .t{font-size:13px;margin-top:4px}
+  .msg{display:flex;gap:10px;padding:6px 0;border-bottom:1px dashed #24293a;font-size:13px}
+  .msg:last-child{border-bottom:none}
+  .msg .t{color:var(--muted);font-size:11px;white-space:nowrap;min-width:86px;font-variant-numeric:tabular-nums}
+  .msg .r{min-width:30px;color:var(--muted);font-size:12px}
+  .msg .x{flex:1;word-break:break-all;white-space:pre-wrap}
+  .msg.me .r{color:var(--accent)}
+  .relationship{display:inline-flex;gap:5px;align-items:center;font-size:12px;font-weight:500;
+    color:var(--rel-color,#9aa4b7);background:color-mix(in srgb,var(--rel-color,#9aa4b7) 10%,transparent);
+    padding:3px 8px;border:1px solid color-mix(in srgb,var(--rel-color,#9aa4b7) 25%,transparent);border-radius:7px}
+  .relationship svg{width:16px;height:16px;flex:none}
+  .relation-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:5px 0}
+  .confidence{font-size:11px;color:var(--muted)}
+  .stability-hint{font-size:11px;color:var(--muted)}
+  .stability-hint.observing{color:#e6b365}
+  .relation-detail{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px}
+  .relation-detail p{margin:8px 0;font-size:13px;line-height:1.7}
+  .relation-detail ul{margin:8px 0;padding-left:20px;color:var(--muted);font-size:12px}
+  .relation-note{font-size:11px!important;color:var(--muted)}
+  #watched .row{align-items:flex-start;flex-wrap:wrap;position:relative}
+  #watched .row>.avatar{margin-top:5px}
+  #watched .row>.score{margin-top:5px}
+  #watched .row>.meta{min-width:170px}
+  .right-col{display:flex;flex-direction:column;justify-content:space-between;
+    align-items:center;flex:none;width:172px;align-self:stretch;margin:0 2px}
+  .row-actions{display:flex;gap:6px;justify-content:center;width:100%;margin-top:6px}
+  button:disabled{opacity:.45;cursor:default}
+  .live-status{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:12px 0}
+  .live-dot{width:7px;height:7px;background:var(--orange);border-radius:50%}
+  .live-status.connected .live-dot{background:var(--green)}
+  .api-alert{background:#322117;border:1px solid #9d6238;color:#ffd2ad;border-radius:10px;padding:12px 14px;margin:12px 0}
+  .api-alert[hidden]{display:none}
+  .api-alert button{margin-top:9px}
+  .api-alert p{margin:0;line-height:1.6}
+  .legend{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 18px}
+
+  .live-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .live-row .live-status{margin:0}
+  .rt-toggle{flex:none;display:inline-flex;align-items:center;gap:7px;padding:7px 12px;
+    border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid var(--line);
+    background:var(--panel2);color:var(--muted);cursor:pointer;transition:all .15s}
+  .rt-toggle:hover{filter:brightness(1.15)}
+  .rt-toggle:disabled{opacity:.6;cursor:default}
+  .rt-toggle.on{background:#12301f;border-color:#1f5a38;color:#4ade80}
+  .rt-toggle.off{background:#2a1d1d;border-color:#5a2a2a;color:#ff8a80}
+  .rt-toggle::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+  .live-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .rt-toggle.mode.on{background:#12233a;border-color:#2f4a7a;color:#8fb5ff}
+  .rt-toggle.mode.off{background:#1d222c;border-color:#333b4a;color:#9aa4b8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- ================= ICON SLOT (handoff to Codex) =================
+       槽位文件：assets/zhijian-logo.png（1024x1024、透明背景、无圆角）
+       同时用于：知间.app 图标、仪表盘 /icon、菜单栏图标参考
+       生成后替换该文件并重新打包：见 assets/ICON_SLOT.md
+       约束：不要改 id="brandIcon"、/icon 路由和 .brand-icon 尺寸
+       ============================================================== -->
+  <div class="brand">
+    <div class="brand-icon" title="Icon slot：替换 assets/zhijian-logo.png">
+      <img id="brandIcon" src="/icon" alt="知间图标"
+           onerror="this.style.display='none';document.getElementById('brandFallback').style.display='flex'">
+      <span id="brandFallback" class="brand-fallback">知</span>
+    </div>
+    <div>
+      <h1>知间 · 聊天关系</h1>
+      <div class="sub">从聊天内容识别关系，了解互动的温度与变化。</div>
+    </div>
+  </div>
+  <div class="live-row">
+    <div class="live-status" id="liveStatus" role="status"><span class="live-dot"></span><span id="liveText">正在连接实时分析…</span></div>
+    <div class="live-actions">
+      <button id="profileToggle" class="rt-toggle mode" type="button" title="省额度：批次化 + 紧凑上下文；高精度：每条消息全量分析">模式：高精度</button>
+      <button id="realtimeToggle" class="rt-toggle on" type="button" title="关闭后不再自动分析新消息，手动分析仍可用；设置会持久保存">实时分析：开启</button>
+    </div>
+  </div>
+  <div class="api-alert" id="apiAlert" role="alert" hidden><p id="apiMessage"></p><button id="retryApi">检查额度并重试</button></div>
+  <div class="section-title"><span>已选会话 · 关系判断</span><span id="watchedInfo"></span></div>
+  <div class="panel" id="watched"><div class="empty">还没有勾选会话</div></div>
+  <div class="legend" id="relationshipLegend"></div>
+  <div class="section-title"><span>选择要分析的会话</span></div>
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="搜索昵称…">
+    <button class="ghost" id="all">全选</button>
+    <button class="ghost" id="none">清空</button>
+    <button class="ghost" id="unread">只选未读</button>
+  </div>
+  <div class="panel" id="list"><div class="empty">加载中…</div></div>
+</div>
+
+<div class="footer">
+  <span class="count" id="count">已选 0 个</span>
+  <button class="primary" id="save">保存选择</button>
+  <button id="analyzeAll">全量分析已选</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <strong id="evTitle">分析依据</strong>
+      <button id="evClose" class="tiny">关闭</button>
+    </div>
+    <div class="scorebar" id="evScore"></div>
+    <div class="sheet-body" id="evBody"></div>
+  </div>
+</div>
+
+<script>
+const state={sessions:[],selected:new Set(),stateChats:[],q:""};
+const $=id=>document.getElementById(id);
+function el(t,c,x){const e=document.createElement(t); if(c)e.className=c; if(x!==undefined)e.textContent=x; return e;}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800);}
+const relations={
+  family:{label:"家人",color:"#55cd9b",path:'<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>'},
+  friend:{label:"朋友",color:"#72a8ff",path:'<circle cx="8" cy="8" r="3"/><path d="M2 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M17 14a5 5 0 0 1 5 5v2"/>'},
+  classmate:{label:"同学",color:"#a69bff",path:'<path d="m2 9 10-5 10 5-10 5ZM6 11v6q6 5 12 0v-6M22 9v8"/>'},
+  colleague:{label:"同事／合作",color:"#e9b66b",path:'<rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V3h8v4M3 12q9 6 18 0M10 14h4"/>'},
+  flirting:{label:"暧昧",color:"#dc91ee",path:'<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5ZM20 2v4M18 4h4"/>'},
+  partner:{label:"恋人",color:"#f28da8",path:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>'},
+  acquaintance:{label:"普通联系",color:"#9aabc2",path:'<path d="M21 11a9 9 0 0 1-9 9H3l1.3-4A9 9 0 1 1 21 11Z"/><path d="M8 10h8M8 14h5"/>'},
+  unknown:{label:"暂不确定",color:"#8e98ab",path:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .6-1.5 1-1.5 2M12 16h.01"/>'},
+  group:{label:"群聊",color:"#65c4cb",path:'<circle cx="12" cy="8" r="3"/><path d="M6 21v-3a6 6 0 0 1 12 0v3M4 5a3 3 0 0 0 0 6M20 5a3 3 0 0 1 0 6M2 15v5M22 15v5"/>'}
+};
+function relationBadge(r){
+  const def=relations[r?.type]||relations.unknown, badge=el("span","relationship");
+  badge.style.setProperty("--rel-color",def.color);
+  badge.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+def.path+'</svg>';
+  badge.appendChild(el("span",null,r?def.label:"待判断"));
+  badge.title=r?.reason||"分析完成后显示关系判断";
+  return badge;
+}
+function confidenceText(r){
+  if(!r)return "";
+  if(r.type==="group")return "会话类型";
+  return r.type==="unknown"||r.confidence<65?"线索不足":(r.confidence>=80?"把握较高":"把握中等");
+}
+function relationLine(r){
+  const line=el("div","relation-line");line.appendChild(relationBadge(r));
+  const confidence=el("span","confidence",confidenceText(r));
+  confidence.title=r?`模型自评 ${r.confidence}/100，不代表真实概率`:"";
+  line.appendChild(confidence);
+  if(r?.stability){
+    const st=r.stability, observing=st.status==="observing";
+    const text=observing?"关系变化观察中":st.status==="uncertain"?"保留原关系":"已启用稳定判断";
+    const hint=el("span","stability-hint"+(observing?" observing":""),text);
+    hint.title=st.message+(observing?` 候选：${st.candidate_label}，已完成 ${st.confirmations} 轮观察，至少需要 ${st.required_confirmations} 轮；观察时间和新消息实际跨度均需达到 24 小时。当前消息跨度 ${st.evidence_span_hours??0} 小时。`:"");
+    line.appendChild(hint);
+  }
+  return line;
+}
+function scClass(s){if(s==null)return "";return s>=50?"s-hi":(s>=0?"s-mid":"s-lo");}
+function fmtScore(n){if(n==null)return "—";return String(Number(n));}
+function relTime(ms){if(!ms)return"";const d=Date.now()-ms,m=Math.floor(d/60000);
+  if(m<1)return"刚刚";if(m<60)return m+" 分钟前";const h=Math.floor(m/60);if(h<24)return h+" 小时前";
+  return Math.floor(h/24)+" 天前";}
+function avatarNode(s){
+  const a=el("div","avatar");
+  if(s.has_avatar){const i=document.createElement("img"); i.src="/api/avatar/"+encodeURIComponent(s.id);
+    i.onerror=()=>{i.remove();a.textContent=(s.name||"?").slice(0,1);}; a.appendChild(i);}
+  else a.textContent=(s.name||"?").slice(0,1);
+  return a;
+}
+async function api(path, options){
+  const r=await fetch(path,options), d=await r.json();
+  if(!r.ok || d.error) throw new Error(d.error||`HTTP ${r.status}`);
+  return d;
+}
+function statusText(s){
+  if(s.status==="queued") return "消息已收到，排队分析中";
+  if(s.status==="waiting") return "等待新消息同步，将自动继续";
+  if(s.status==="blocked") return s.error||"API 暂不可用，分析已暂停";
+  if(s.status==="syncing") return "同步消息中";
+  if(s.status==="transcribing") return "语音转写中";
+  if(s.status==="summarizing") return "正在汇总评分与关系";
+  if(s.status==="classifying") return "正在判断关系";
+  if(s.status==="analyzing") return `分析中 ${s.chunks_done||0}/${s.chunks_total||0} 片`;
+  if(s.status==="error") return "分析失败："+(s.error||"可点击重试");
+  if(s.status==="done") return `已分析 ${s.msgs_total||0} 条`;
+  return "等待分析";
+}
+
+function render(){
+  const list=$("list"); list.innerHTML="";
+  const q=state.q.trim().toLowerCase();
+  const items=state.sessions.filter(s=>!q||(s.name||"").toLowerCase().includes(q));
+  if(!items.length) list.appendChild(el("div","empty","没有匹配的会话"));
+  items.forEach(s=>{
+    const row=el("div","row");
+    const cb=document.createElement("input"); cb.type="checkbox";
+    cb.checked=state.selected.has(s.id);
+    cb.onchange=()=>{state.touched=true;cb.checked?state.selected.add(s.id):state.selected.delete(s.id);updateCount();};
+    row.appendChild(cb); row.appendChild(avatarNode(s));
+    const meta=el("div","meta");
+    const name=el("div","name");
+    name.appendChild(el("span",null,s.name||s.id));
+    name.appendChild(el("span","badge",s.kind===2?"群聊":"私聊"));
+    if(s.unread>0)name.appendChild(el("span","badge unread","未读 "+s.unread));
+    if(s.running)name.appendChild(el("span","badge running","分析中"));
+    meta.appendChild(name);
+    if(s.relationship)meta.appendChild(relationLine(s.relationship));
+    meta.appendChild(el("div","preview", s.watched ? statusText(s) : relTime(s.last_ts)));
+    row.appendChild(meta);
+    if(s.running){
+      const p=el("div","prog"); const i=document.createElement("i");
+      const tot=s.chunks_total||0, done=s.chunks_done||0;
+      i.style.width=(tot?Math.round(done/tot*100):8)+"%"; p.appendChild(i); row.appendChild(p);
+    } else if(s.scored){
+      row.appendChild(el("div","score "+scClass(s.score), fmtScore(s.score)));
+    }
+    list.appendChild(row);
+  });
+  renderWatched(); updateCount();
+}
+
+function renderWatched(){
+  const box=$("watched"); box.innerHTML="";
+  const chats=new Map(state.stateChats.map(c=>[c.id,c]));
+  const watched=state.sessions.filter(s=>s.watched);
+  const scoredVals=watched.map(s=>s.score).filter(v=>typeof v==="number");
+  let info=`${watched.filter(s=>s.relationship).length}/${watched.length} 个已判断`;
+  if(scoredVals.length>=3){
+    const spread=Math.max(...scoredVals)-Math.min(...scoredVals);
+    if(spread<15) info+=` · 组内分差仅 ${spread} 分，区分度偏低`;
+  }
+  $("watchedInfo").textContent=info;
+  if(!watched.length){box.appendChild(el("div","empty","选择会话并保存后开始分析"));return;}
+  watched.forEach(s=>{
+    const c=chats.get(s.id)||{}, score=c.score??s.score;
+    if(c.status)s={...s,status:c.status,error:c.error,running:["queued","syncing","transcribing","analyzing","summarizing","classifying"].includes(c.status)};
+    const row=el("div","row"); row.appendChild(avatarNode(s));
+    const meta=el("div","meta"), name=el("div","name");
+    name.appendChild(el("span",null,s.name));
+    if(s.running)name.appendChild(el("span","badge running",s.status==="queued"?"排队中":"分析中"));
+    meta.appendChild(name);
+    meta.appendChild(relationLine(c.relationship||s.relationship));
+    {
+      const d0=c.dimensions||s.dimensions||{};
+      const rom=d0.romantic;
+      const idx=el("div","indices");
+      idx.appendChild(el("span","idx close "+(score!=null?scClass(score):""),
+        `长期亲近 ${fmtScore(score)}`));
+      const rclass=rom==null?"unknown":(rom>=60?"hot":rom>=40?"mid":rom>=20?"warm":"none");
+      idx.appendChild(el("span","idx romantic "+rclass,
+        `心动 ${rom==null?"—":rom}`));
+      meta.appendChild(idx);
+    }
+    const status=el("div","preview",statusText(s)); status.title=statusText(s); meta.appendChild(status);
+    if(score!==undefined && score!==null){
+      const prefix=s.status!=="done"?"上次结果：":"";
+      meta.appendChild(el("div","preview",prefix+(c.reason||s.reason||"")));
+    }
+    const u=c.usage_today||s.usage_today||{}, u7=c.usage_7d||s.usage_7d||{};
+    const usageLine=el("div","usage",
+      `今日 ${fmtTokens(u.tokens||0)} · 近7日 ${fmtTokens(u7.tokens||0)}`);
+    usageLine.title="W = 万 tokens（1W = 10,000 tokens）";
+    meta.appendChild(usageLine);
+    const rtRecent=c.recent_trend||s.recent_trend||{};
+    const tr=rtRecent.close||c.trend||s.trend;
+    const trendBox=el("div","trend");
+    if(tr&&tr.status==="ready"){
+      const slope=Number(tr.slope_per_100_msgs||0);
+      trendBox.classList.add(slope>0?"up":(slope<0?"down":"flat"));
+      trendBox.textContent=`${tr.symbol||"→"} ${slope.toFixed(2)} 分/100条 · ${tr.label||""}`;
+      trendBox.title=(tr.description||"")+(tr.prediction?` 再聊 ${tr.prediction.messages} 条：${tr.prediction.score}（${tr.prediction.low}–${tr.prediction.high}）`:"");
+    }else{
+      trendBox.classList.add("muted");
+      const tt=tr&&tr.status==="noisy"?"趋势：波动较大":(tr&&tr.status==="stale"?"趋势：近期无新消息":"趋势：样本不足（需至少4个消息位置）");
+      trendBox.textContent=tt;
+      trendBox.title=(tr&&tr.description)||"趋势只使用实际分析上下文；同一消息位置重复重算不会增加样本。";
+    }
+    meta.appendChild(trendBox);
+    const dims=c.dimensions||s.dimensions||{};
+    if(dims.warmth!==undefined){
+      meta.appendChild(el("div","dims",
+        `温暖 ${dims.warmth} · 主动 ${dims.initiative} · 亲密 ${dims.intimacy} · 回应 ${dims.responsiveness} · 浪漫 ${dims.romantic!==undefined?dims.romantic:"—"}`));
+    }
+    row.appendChild(meta);
+    const rightCol=el("div","right-col");
+    const rt0=c.recent_trend||s.recent_trend||{};
+    rightCol.appendChild(trendVisuals(rt0.close||c.trend||s.trend,rt0.romantic||c.romantic_trend||s.romantic_trend));
+    row.appendChild(rightCol);
+    row.appendChild(el("div","score "+(score!=null?scClass(score):""),fmtScore(score)));
+    const actions=el("div","row-actions");
+    const eb=el("button","tiny","分析依据"); eb.onclick=()=>showEvidence(s.id,s.name); actions.appendChild(eb);
+    const ab=el("button","tiny",s.status==="error"?"重试":(score!=null?"重算评分":"开始分析"));
+    ab.disabled=!!s.running;
+    ab.onclick=()=>analyze(s.id,s.status!=="error" && score!=null); actions.appendChild(ab);
+    rightCol.appendChild(actions);
+    box.appendChild(row);
+  });
+}
+function fmtTokens(n){
+  n=Number(n)||0;
+  if(n<=0)return "0";
+  const w=n/10000;
+  if(w<1)return w.toFixed(2)+"W";
+  if(w<100)return w.toFixed(1)+"W";
+  return w.toFixed(0)+"W";
+}
+function trendArrow(label,tr,color){
+  const wrap=el("div","tv");
+  const ok=tr&&(tr.status==="ready"||tr.status==="provisional");
+  const noisy=tr&&tr.status==="noisy";
+  const stale=tr&&tr.status==="stale";
+  const ang=ok?Number(tr.angle_degrees||0):0;
+  const rad=ang*Math.PI/180;
+  const w=96,h=64,cx=8,cy=32,len=28;
+  const x2=cx+len*Math.cos(rad), y2=cy-len*Math.sin(rad);
+  const ux=Math.cos(rad), uy=-Math.sin(rad), px=-uy, py=ux;
+  const hd=6;
+  const p2=`${x2-hd*ux+2.5*px},${y2-hd*uy+2.5*py}`;
+  const p3=`${x2-hd*ux-2.5*px},${y2-hd*uy-2.5*py}`;
+  const stroke=ok?color:"#4a5263";
+  const dash=ok&&tr.status==="provisional"?"stroke-dasharray=\"4 3\"":"";
+  wrap.innerHTML=`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`+
+    `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-width="2" ${dash}/>`+
+    `<polygon points="${x2},${y2} ${p2} ${p3}" fill="${stroke}"/>`+`</svg>`;
+  const slope=ok?Number(tr.slope_per_100_msgs):null;
+  const val=ok?(slope.toFixed(2)+"分/100条"):(noisy?"波动较大":(stale?"近期无新消息":"样本不足"));
+  wrap.appendChild(el("div","tv-label",`${label} ${val}`));
+  wrap.title=(tr&&tr.description?tr.description+"\n":"")+
+    "箭头数值是每 100 条消息的变化量，不是总分；右侧大数字才是当前指数。";
+  return wrap;
+}
+function trendVisuals(close,rom){
+  const box=el("div","trend-visuals");
+  box.appendChild(trendArrow("亲近",close,"#5b8cff"));
+  box.appendChild(trendArrow("心动",rom,"#ff8ab8"));
+  return box;
+}
+function updateCount(){$("count").textContent="已选 "+state.selected.size+" 个";}
+
+async function loadSessions(){
+  try{
+    const d=await api("/api/sessions");
+    state.sessions=d.sessions||[];
+    if(!state.touched){state.selected=new Set(state.sessions.filter(s=>s.watched).map(s=>s.id));}
+    render();
+  }catch(e){$("list").innerHTML='<div class="empty">读取失败：'+esc(String(e))+'</div>';}
+}
+async function loadState(){
+  if(state.loadingState)return;
+  state.loadingState=true;
+  try{
+    const d=await api("/api/state");state.stateChats=d.chats||[];
+    const rt=d.realtime||{}, issue=d.api_issue;
+    realtimeOn=rt.enabled!==false; renderRealtimeToggle();
+    ecoMode=rt.profile==="eco"; renderProfileToggle();
+    $("liveStatus").classList.toggle("connected",!!rt.connected&&realtimeOn);
+    const last=rt.last_event_at?" · 最近消息 "+relTime(rt.last_event_at*1000):"";
+    const statusText=realtimeOn?(rt.message||"正在连接消息推送"):"实时分析已暂停（手动分析仍可用）";
+    const prof=rt.profile==="eco"?" · 省额度模式":"";
+    $("liveText").textContent=statusText+last+prof+(rt.active?` · ${rt.active} 个会话处理中`:"");
+    $("apiAlert").hidden=!issue;
+    if(issue){
+      $("apiMessage").textContent=issue.message;
+      $("retryApi").hidden=issue.code==="rate_limit";
+      if(state.lastIssue!==issue.code){toast(issue.message);state.lastIssue=issue.code;}
+    }else{state.lastIssue=null;}
+    renderWatched();
+  }catch(e){
+    $("liveStatus").classList.remove("connected");
+    $("liveText").textContent="后端连接中断，正在重新连接…";
+  }finally{state.loadingState=false;}
+}
+$("retryApi").onclick=async()=>{
+  $("retryApi").disabled=true;
+  try{
+    const d=await api("/api/retry",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+    toast(d.available===true?"API 余额可用，正在恢复分析":d.available===false?"API 余额仍不足":"暂时无法确认额度，请稍后重试");
+    loadState();loadSessions();
+  }catch(e){toast(String(e));}finally{$("retryApi").disabled=false;}
+};
+
+async function analyze(id,force){
+  try{
+    const d=await api("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,force:!!force})});
+    toast(d.status==="blocked"?"API 暂不可用，已保留待分析任务":d.status==="running"?"该会话已在分析队列中":"已加入分析队列"); loadSessions();
+  }catch(e){toast(String(e));}
+}
+
+$("q").oninput=e=>{state.q=e.target.value;state.touched=true;render();};
+$("all").onclick=()=>{state.touched=true;state.sessions.forEach(s=>state.selected.add(s.id));render();};
+$("none").onclick=()=>{state.touched=true;state.selected.clear();render();};
+$("unread").onclick=()=>{state.touched=true;state.selected=new Set(state.sessions.filter(s=>s.unread>0).map(s=>s.id));render();};
+$("save").onclick=async()=>{
+  try{
+    const ids=[...state.selected];
+    const d=await api("/api/watch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids})});
+    state.touched=false; toast("已保存 "+d.watched+" 个会话"); loadSessions(); loadState();
+  }catch(e){toast(String(e));}
+};
+$("analyzeAll").onclick=async()=>{
+  try{
+    const d=await api("/api/analyze_all",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+    toast("已加入队列 "+d.started+" 个会话"); loadSessions();
+  }catch(e){toast(String(e));}
+};
+
+async function showEvidence(id,name){
+  $("evTitle").textContent="分析依据 · "+(name||"");
+  $("evScore").innerHTML=""; $("evBody").innerHTML='<div class="empty">加载中…</div>';
+  $("modal").classList.add("show");
+  try{
+    const d=await api("/api/evidence/"+encodeURIComponent(id));
+    const sc=d.score||{}, st=d.stats||{};
+    $("evScore").innerHTML='<b class="'+scClass(sc.score??0)+'">'+fmtScore(sc.score)+'</b>'+
+      '<span class="reason" style="max-width:none">'+esc(sc.reason||"")+'</span>'+
+      '<span class="count">共 '+(d.total||0)+' 条消息 · '+(d.chunks||[]).length+' 个分片</span>';
+    const body=$("evBody"); body.innerHTML="";
+    if(sc.score_stability){
+      const observation=sc.score_stability.status==="baseline"?"已建立平滑基线，等待后续新消息。":`本次模型原始评分：${fmtScore(sc.score_stability.raw_score)}。`;
+      body.appendChild(el("p","muted",`${sc.score_stability.message} ${observation}重复分析同一批消息不会重复推动主分数。`));
+    }
+    const relation=el("div","relation-detail"), rel=sc.relationship;
+    relation.appendChild(relationLine(rel));
+    relation.appendChild(el("p",null,rel?.reason||"尚未生成关系判断，可以点击“判断关系”补充。"));
+    if(rel?.time_reason)relation.appendChild(el("p",null,"时间依据："+rel.time_reason));
+    if(rel?.evidence?.length){
+      const evidence=el("ul");rel.evidence.forEach(e=>evidence.appendChild(el("li",null,e)));relation.appendChild(evidence);
+    }
+    if(rel?.stability){
+      const st=rel.stability;
+      relation.appendChild(el("p",null,st.message));
+      if(st.status==="observing")relation.appendChild(el("p",null,`候选关系：${st.candidate_label}。已完成 ${st.confirmations} 轮有效观察；至少 3 轮，每轮至少 10 条新聊天消息，观察时间和新消息实际跨度都达到 24 小时后才切换。当前新消息跨度：${st.evidence_span_hours??0} 小时。`));
+    }
+    relation.appendChild(el("p","relation-note","关系是根据聊天内容作出的推测。分数可随互动变化，关系类型默认保持；持续新证据或核对原文后的明确关系事件才会触发切换。"));
+    body.appendChild(relation);
+    if(d.temporal){
+      const t=d.temporal, recent=t.windows["7d"], month=t.windows["30d"], before=t.previous_7d;
+      const timing=el("div","relation-detail");
+      timing.appendChild(el("div","section-title","时间与互动（按当前时点统计）"));
+      const last=t.last_contact_ms?new Date(t.last_contact_ms).toLocaleString():"暂无有效时间记录";
+      timing.appendChild(el("p",null,`最近联系：${last}${t.days_since_last_contact!=null?`（距今 ${t.days_since_last_contact} 天）`:""}`));
+      timing.appendChild(el("p",null,`近 168 小时（滚动 7 天）：${recent.messages} 条消息，分布于 ${recent.active_days} 个自然日期，其中 ${recent.two_way_active_days} 个日期有双方互动；上一个 168 小时为 ${before.messages} 条。滚动 30 天内，有互动的日期共 ${month.active_days} 个。`));
+      timing.appendChild(el("p","relation-note","暧昧需要持续、双向、带浪漫倾向的内容证据。时间和频率仅作辅助；几天没聊不会自动降级。滚动窗口的首尾可能跨两个不完整日期。此处统计按当前时点更新，关系说明可能沿用此前被采纳的证据。"));
+      body.appendChild(timing);
+    }
+    const dims=sc.dimensions||{};
+    const grid=el("div","grid");
+    const kv={"warmth":"温暖","initiative":"主动","intimacy":"亲密","responsiveness":"回应","romantic":"浪漫"};
+    Object.keys(kv).forEach(k=>{ if(dims[k]!==undefined){const s=el("div","stat");s.appendChild(el("div","k",kv[k]));s.appendChild(el("div","v",String(dims[k])));grid.appendChild(s);} });
+    const addStat=(k,v)=>{const s=el("div","stat");s.appendChild(el("div","k",k));s.appendChild(el("div","v",String(v)));grid.appendChild(s);};
+    addStat("消息数",String(st.messages??d.total??0));
+    addStat("我/对方",`${st.mine??"-"}/${st.peer??"-"}`);
+    addStat("语音",String(st.voice??0));
+    addStat("跨度",(st.span_days??0)+" 天");
+    addStat("平均字数",String(st.avg_text_len??0));
+    addStat("回复中位",(st.reply_median_s!==undefined?st.reply_median_s+"s":"-"));
+    const tr=d.trend||(sc&&sc.trend);
+    if(tr&&tr.status==="ready"){
+      addStat("趋势",`${tr.symbol||"→"} ${tr.slope_per_100_msgs} 分/100条`);
+      addStat("预测",`${tr.prediction?"再聊"+tr.prediction.messages+"条 → "+tr.prediction.score:"-"}`);
+    }else{
+      addStat("趋势",(tr&&tr.label)||"样本不足");
+    }
+    body.appendChild(grid);
+    if(tr&&tr.description){body.appendChild(el("div","usage",tr.description));}
+    const chunks=d.chunks||[];
+    if(chunks.length){
+      body.appendChild(el("div","section-title","分片分析（共 "+chunks.length+" 片）"));
+      chunks.forEach(c=>{
+        const card=el("div","chunk"), h=el("div","h"), s=c.summary||{};
+        h.appendChild(el("span",null,`#${c.idx+1} ${new Date(c.from_ts).toLocaleDateString()} ~ ${new Date(c.to_ts).toLocaleDateString()} · ${c.count} 条`));
+        h.appendChild(el("span",null,(s.affinity!==undefined?"好感 "+s.affinity:"")));
+        card.appendChild(h);
+        if(s.tone)card.appendChild(el("div","t","语气："+s.tone));
+        if((s.topics||[]).length)card.appendChild(el("div","t","话题："+s.topics.join("、")));
+        if((s.positive||[]).length)card.appendChild(el("div","t","积极："+s.positive.join("；")));
+        if((s.negative||[]).length)card.appendChild(el("div","t","消极："+s.negative.join("；")));
+        if((s.notable||[]).length)card.appendChild(el("div","t","事件："+s.notable.join("；")));
+        body.appendChild(card);
+      });
+    }
+    body.appendChild(el("div","section-title","最近 40 条消息（原文/语音转写）"));
+    (d.messages||[]).forEach(m=>{
+      const t=new Date(m.time).toLocaleString("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+      const div=el("div","msg"+(m.role==="我"?" me":""));
+      div.appendChild(el("span","t",t)); div.appendChild(el("span","r",m.role));
+      div.appendChild(el("span","x",m.text||"["+m.kind+"]")); body.appendChild(div);
+    });
+  }catch(e){$("evBody").innerHTML='<div class="empty">加载失败：'+esc(String(e))+'</div>';}
+}
+$("evClose").onclick=()=>$("modal").classList.remove("show");
+$("modal").onclick=e=>{if(e.target.id==="modal")e.currentTarget.classList.remove("show");};
+
+Object.entries(relations).filter(([k])=>k!=="group").forEach(([type])=>$("relationshipLegend").appendChild(relationBadge({type})));
+let realtimeOn=true;
+let ecoMode=false;
+function renderProfileToggle(){
+  const b=$("profileToggle"); if(!b) return;
+  b.textContent=ecoMode?"模式：省额度":"模式：高精度";
+  b.classList.toggle("on",ecoMode);
+  b.classList.toggle("off",!ecoMode);
+}
+function renderRealtimeToggle(){
+  const b=$("realtimeToggle"); if(!b) return;
+  b.textContent=realtimeOn?"实时分析：开启":"实时分析：已暂停";
+  b.classList.toggle("on",realtimeOn);
+  b.classList.toggle("off",!realtimeOn);
+}
+$("realtimeToggle").onclick=async()=>{
+  const target=!realtimeOn;
+  const b=$("realtimeToggle"); b.disabled=true;
+  try{
+    const d=await api("/api/realtime",{method:"POST",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify({enabled:target})});
+    realtimeOn=!!d.enabled; renderRealtimeToggle(); loadState();
+    toast(target?(d.catch_up?`已开启实时分析，正在补跑 ${d.catch_up} 个会话`:"已开启实时分析")
+               :"已暂停实时分析，不再自动消耗额度");
+  }catch(e){toast("切换失败："+String(e));}
+  finally{b.disabled=false;}
+};
+renderRealtimeToggle();renderProfileToggle();
+$("profileToggle").onclick=async()=>{
+  const target=!ecoMode;
+  const b=$("profileToggle"); b.disabled=true;
+  try{
+    const d=await api("/api/profile",{method:"POST",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify({profile:target?"eco":"accurate"})});
+    ecoMode=d.profile==="eco"; renderProfileToggle(); loadState();
+    toast(ecoMode?"已切换到省额度模式（下次分析生效）":"已切换到高精度模式（下次分析生效）");
+  }catch(e){toast("切换失败："+String(e));}
+  finally{b.disabled=false;}
+};
+loadSessions();loadState();
+setInterval(loadSessions,5000);
+setInterval(loadState,1000);
+</script>
+</body>
+</html>

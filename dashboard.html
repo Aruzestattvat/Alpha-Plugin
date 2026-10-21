@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>微信好感度 · 选择要分析的会话</title>
+<style>
+  :root{
+    --bg:#111318; --panel:#171a21; --panel2:#1d212a; --line:#2a2f3a;
+    --text:#e8eaf0; --muted:#8b93a7; --accent:#5b8cff; --green:#34c759;
+    --orange:#ff9f0a; --red:#ff453a; --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC",sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  input[type=search]{flex:1;min-width:200px;background:var(--panel);border:1px solid var(--line);
+    color:var(--text);padding:9px 12px;border-radius:9px;outline:none}
+  input[type=search]:focus{border-color:var(--accent)}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);
+    padding:8px 12px;border-radius:9px;cursor:pointer;font-size:13px}
+  button:hover{border-color:#3b4252}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  button.ghost{background:transparent}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:none}
+  .row:hover{background:var(--panel2)}
+  .avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none;
+    background:#2b3240;display:flex;align-items:center;justify-content:center;
+    font-weight:600;color:#fff;font-size:15px;overflow:hidden}
+  .avatar img{width:100%;height:100%;object-fit:cover}
+  .meta{flex:1;min-width:0}
+  .name{display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:1px 6px;border-radius:6px}
+  .unread{background:#3a2f1d;color:#ffc46b;border-color:#5a4622}
+  .preview{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .score{font-weight:700;font-variant-numeric:tabular-nums;min-width:46px;text-align:right}
+  .s-hi{color:var(--green)} .s-mid{color:var(--orange)} .s-lo{color:var(--red)}
+  .reason{color:var(--muted);font-size:12px;max-width:220px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);flex:none}
+  .spinner{width:14px;height:14px;border:2px solid #3a4252;border-top-color:var(--accent);
+    border-radius:50%;animation:spin .8s linear infinite;flex:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .footer{position:fixed;left:0;right:0;bottom:0;background:rgba(17,19,24,.94);
+    backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:12px 20px;
+    display:flex;justify-content:center;gap:14px;align-items:center}
+  .footer .count{color:var(--muted);font-size:13px}
+  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);
+    background:#1e2a3d;border:1px solid #33507a;color:#cfe0ff;padding:9px 16px;border-radius:10px;
+    font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+  .toast.show{opacity:1}
+  .empty{color:var(--muted);padding:40px;text-align:center}
+  button.tiny{padding:4px 9px;font-size:12px;border-radius:7px;flex:none}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+  .modal.show{display:flex}
+  .sheet{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:760px;width:100%;max-height:82vh;display:flex;flex-direction:column;overflow:hidden}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .sheet-body{overflow:auto;padding:8px 16px 18px}
+  .msg{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed #24293a;font-size:13px}
+  .msg:last-child{border-bottom:none}
+  .msg .t{color:var(--muted);font-size:11px;white-space:nowrap;min-width:88px;font-variant-numeric:tabular-nums}
+  .msg .r{min-width:30px;color:var(--muted);font-size:12px}
+  .msg .x{flex:1;word-break:break-all;white-space:pre-wrap}
+  .msg.me .r{color:var(--accent)}
+  .scorebar{display:flex;gap:14px;align-items:baseline;padding:10px 16px;border-bottom:1px solid var(--line)}
+  .scorebar b{font-size:22px}
+  .section-title{font-size:13px;color:var(--muted);margin:22px 0 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>微信好感度</h1>
+  <div class="sub">勾选你要分析的会话 — 只有勾选的才会计算评分并显示在菜单栏。</div>
+
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="搜索昵称…">
+    <button class="ghost" id="all">全选</button>
+    <button class="ghost" id="none">清空</button>
+    <button class="ghost" id="unread">只选未读</button>
+  </div>
+
+  <div class="panel" id="list"><div class="empty">加载中…</div></div>
+
+  <div class="section-title" id="watchedTitle">已选会话</div>
+  <div class="panel" id="watched"><div class="empty">还没有勾选会话</div></div>
+</div>
+
+<div class="footer">
+  <span class="count" id="count">已选 0 个</span>
+  <button class="primary" id="save">保存并开始分析</button>
+  <button id="rescore">重新评分</button>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <strong id="evTitle">评分依据</strong>
+      <button id="evClose" class="tiny">关闭</button>
+    </div>
+    <div class="scorebar" id="evScore"></div>
+    <div class="sheet-body" id="evBody"></div>
+  </div>
+</div>
+
+<script>
+const state = {sessions: [], selected: new Set(), saved: new Set(), q: ""};
+
+function el(tag, cls, text){const e=document.createElement(tag); if(cls)e.className=cls; if(text!==undefined)e.textContent=text; return e;}
+function esc(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800);}
+function scoreClass(s){return s>=75?"s-hi":(s>=55?"s-mid":"s-lo");}
+function relTime(ms){if(!ms)return"";const d=Date.now()-ms;const m=Math.floor(d/60000);
+  if(m<1)return"刚刚";if(m<60)return m+" 分钟前";const h=Math.floor(m/60);if(h<24)return h+" 小时前";
+  const day=Math.floor(h/24);if(day<30)return day+" 天前";return Math.floor(day/30)+" 个月前";}
+
+function avatarNode(s){
+  const a=el("div","avatar");
+  if(s.has_avatar){
+    const img=document.createElement("img");
+    img.src="/api/avatar/"+encodeURIComponent(s.id);
+    img.onerror=()=>{img.remove();a.textContent=(s.name||"?").slice(0,1);};
+    a.appendChild(img);
+  }else{a.textContent=(s.name||"?").slice(0,1);}
+  return a;
+}
+
+function render(){
+  const list=document.getElementById("list");
+  list.innerHTML="";
+  const q=state.q.trim().toLowerCase();
+  const items=state.sessions.filter(s=>!q||(s.name||"").toLowerCase().includes(q));
+  if(!items.length){list.appendChild(el("div","empty","没有匹配的会话"));}
+  items.forEach(s=>{
+    const row=el("div","row");
+    const cb=document.createElement("input");
+    cb.type="checkbox";
+    cb.checked=state.selected.has(s.id);
+    cb.onchange=()=>{cb.checked?state.selected.add(s.id):state.selected.delete(s.id);updateCount();};
+    row.appendChild(cb);
+    row.appendChild(avatarNode(s));
+    const meta=el("div","meta");
+    const name=el("div","name");
+    name.appendChild(el("span",null,s.name||s.id));
+    name.appendChild(el("span","badge",s.kind===2?"群聊":"私聊"));
+    if(s.unread>0)name.appendChild(el("span","badge unread","未读 "+s.unread));
+    meta.appendChild(name);
+    meta.appendChild(el("div","preview", s.scored ? (s.reason||"已评分") : relTime(s.last_ts)));
+    row.appendChild(meta);
+    if(s.pending){row.appendChild(el("div","spinner"));}
+    else if(s.scored){
+      const sc=el("div","score "+scoreClass(s.score), s.score+(s.delta>0?"↑":(s.delta<0?"↓":"")));
+      row.appendChild(sc);
+      row.appendChild(el("div","reason", s.reason||""));
+    }else{
+      row.appendChild(el("div","reason","未评分"));
+    }
+    list.appendChild(row);
+  });
+  renderWatched();
+  updateCount();
+}
+
+function renderWatched(){
+  const box=document.getElementById("watched");
+  const chats=(state.st||[]).filter(c=>state.selected.has(c.id));
+  document.getElementById("watchedTitle").textContent="已选会话（"+(state.st||[]).length+"）";
+  box.innerHTML="";
+  if(!chats.length){box.appendChild(el("div","empty","保存后这里会显示选中会话的评分"));return;}
+  chats.forEach(c=>{
+    const row=el("div","row");
+    row.appendChild(avatarNode({id:c.id,name:c.name,has_avatar:!!c.avatar}));
+    const meta=el("div","meta");
+    meta.appendChild(el("div","name",c.name));
+    meta.appendChild(el("div","preview",c.reason||""));
+    row.appendChild(meta);
+    row.appendChild(el("div","score "+scoreClass(c.score), String(c.score)));
+    const eb=document.createElement("button"); eb.className="tiny"; eb.textContent="依据";
+    eb.onclick=()=>showEvidence(c.id, c.name); row.appendChild(eb);
+    box.appendChild(row);
+  });
+}
+
+function updateCount(){
+  document.getElementById("count").textContent="已选 "+state.selected.size+" 个";
+}
+
+async function loadSessions(){
+  try{
+    const r=await fetch("/api/sessions");const d=await r.json();
+    state.sessions=d.sessions||[];
+    if(state.saved.size===0){d.sessions.forEach(s=>{if(s.watched)state.saved.add(s.id);});}
+    // 合并：已保存的选中状态 + 用户尚未保存的改动
+    if(!state.touched){
+      state.selected=new Set(state.sessions.filter(s=>s.watched).map(s=>s.id));
+      state.saved=new Set(state.selected);
+    }
+    render();
+  }catch(e){document.getElementById("list").innerHTML='<div class="empty">读取失败：'+esc(String(e))+'</div>';}
+}
+
+async function loadState(){
+  try{const r=await fetch("/api/state");state.st=(await r.json()).chats||[];renderWatched();}catch(e){}
+}
+
+document.getElementById("q").oninput=e=>{state.q=e.target.value;state.touched=true;render();};
+document.getElementById("all").onclick=()=>{state.touched=true;state.sessions.forEach(s=>state.selected.add(s.id));render();};
+document.getElementById("none").onclick=()=>{state.touched=true;state.selected.clear();render();};
+document.getElementById("unread").onclick=()=>{state.touched=true;state.selected=new Set(state.sessions.filter(s=>s.unread>0).map(s=>s.id));render();};
+document.getElementById("save").onclick=async()=>{
+  const ids=[...state.selected];
+  const r=await fetch("/api/watch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids})});
+  const d=await r.json();
+  state.saved=new Set(ids);state.touched=false;
+  toast("已保存 "+d.watched+" 个会话，开始评分…");
+  setTimeout(loadSessions,1500);
+};
+document.getElementById("rescore").onclick=async()=>{
+  await fetch("/api/rescore",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+  toast("已开始重新评分");
+  setTimeout(loadSessions,1500);
+};
+
+async function showEvidence(id, name){
+  const modal=document.getElementById("modal");
+  document.getElementById("evTitle").textContent="评分依据 · "+(name||"");
+  document.getElementById("evBody").innerHTML='<div class="empty">加载中…</div>';
+  document.getElementById("evScore").innerHTML="";
+  modal.classList.add("show");
+  try{
+    const r=await fetch("/api/evidence/"+encodeURIComponent(id));
+    const d=await r.json();
+    const sc=d.score||{};
+    document.getElementById("evScore").innerHTML =
+      '<span class="score '+scoreClass(sc.score||50)+'" style="font-size:22px;font-weight:700">'+(sc.score??"-")+'</span>'+
+      '<span class="reason" style="max-width:none">'+esc(sc.reason||"")+'</span>'+
+      '<span class="count">（下面是本次打分实际使用的消息，共 '+(d.messages||[]).length+' 条）</span>';
+    const body=document.getElementById("evBody"); body.innerHTML="";
+    (d.messages||[]).forEach(m=>{
+      const d2=new Date(m.time);
+      const t=d2.toLocaleString("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+      const div=el("div","msg"+(m.role==="我"?" me":""));
+      div.appendChild(el("span","t",t));
+      div.appendChild(el("span","r",m.role));
+      div.appendChild(el("span","x",m.text||"["+m.kind+"]"));
+      body.appendChild(div);
+    });
+  }catch(e){ document.getElementById("evBody").innerHTML='<div class="empty">加载失败：'+esc(String(e))+'</div>'; }
+}
+document.getElementById("evClose").onclick=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("modal").onclick=e=>{ if(e.target.id==="modal") e.currentTarget.classList.remove("show"); };
+
+loadSessions();loadState();
+setInterval(loadSessions,15000);
+setInterval(loadState,4000);
+</script>
+</body>
+</html>
