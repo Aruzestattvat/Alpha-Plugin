@@ -57,7 +57,7 @@ export ALPHA_BASE=http://127.0.0.1:5031
 ## 3. 安装本项目
 
 ```bash
-git clone git@github.com:Aruzestattvat/Alpha-Plugin.git
+git clone https://github.com/Aruzestattvat/Alpha-Plugin.git
 cd Alpha-Plugin
 ./setup.sh
 ```

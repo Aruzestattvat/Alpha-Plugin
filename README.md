@@ -43,7 +43,7 @@ macOS 菜单栏应用 + 本地 Web 仪表盘：通过 Alpha 的本地 HTTP API �
 ### 1. 安装
 
 ```bash
-git clone git@github.com:Aruzestattvat/Alpha-Plugin.git
+git clone https://github.com/Aruzestattvat/Alpha-Plugin.git
 cd Alpha-Plugin
 ./setup.sh
 ```
