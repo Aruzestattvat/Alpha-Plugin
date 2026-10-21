@@ -575,7 +575,14 @@ class Store:
 
     def recent_trend(self, sid):
         cache = self.get_trend_cache(sid)
-        return cache["data"] if cache else None
+        if not cache:
+            return None
+        data = cache["data"]
+        current = self.score(sid) or {}
+        anchor_trend_prediction(data.get("close"), current.get("score"), -100, 100)
+        anchor_trend_prediction(data.get("romantic"),
+                                (current.get("dimensions") or {}).get("romantic"), 0, 100)
+        return data
 
     def romantic_trend(self, sid):
         now = time.time()
@@ -874,6 +881,34 @@ def normalize_trend_samples(obj):
     if not 2 <= len(out) <= 8:
         raise ValueError("趋势采样窗口数量无效")
     return {"samples": out}
+
+
+def anchor_trend_prediction(trend, anchor, lo, hi):
+    """把趋势外推锚定到当前指数，避免采样窗口与总分不同基线造成矛盾。"""
+    if not isinstance(trend, dict) or anchor is None:
+        return trend
+    pred = trend.get("prediction")
+    slope = trend.get("slope_per_100_msgs")
+    if not isinstance(pred, dict) or slope is None:
+        return trend
+    try:
+        anchor = float(anchor)
+        horizon = float(pred.get("messages") or 100)
+        center = anchor + float(slope) * horizon / 100.0
+        low, high = pred.get("low"), pred.get("high")
+        half = max(2.0, (float(high) - float(low)) / 2.0) if isinstance(low, (int, float)) and isinstance(high, (int, float)) else 2.0
+    except (TypeError, ValueError):
+        return trend
+    pred.update({
+        "score": round(max(lo, min(hi, center)), 1),
+        "low": round(max(lo, center - half), 1),
+        "high": round(min(hi, center + half), 1),
+        "anchor": round(anchor, 1),
+    })
+    desc = trend.get("description") or ""
+    if "预测以当前指数" not in desc:
+        trend["description"] = desc + f" 预测以当前指数 {anchor:g} 为基准。"
+    return trend
 
 
 def calibration_deviation(previous, obj):
@@ -1851,6 +1886,10 @@ class Daemon:
             romantic_obs.append((abs_msgs, ts, sample["romantic"]))
         close = compute_context_trend(close_obs, lo=-100, hi=100, min_span=0)
         romantic = compute_context_trend(romantic_obs, lo=0, hi=100, min_span=0)
+        current = self.store.score(sid) or {}
+        anchor_trend_prediction(close, current.get("score"), -100, 100)
+        anchor_trend_prediction(romantic,
+                                (current.get("dimensions") or {}).get("romantic"), 0, 100)
         data = {"status": "ok", "covered_msgs": total, "window_messages": n,
                 "windows": len(bounds), "close": close, "romantic": romantic,
                 "samples": samples,
