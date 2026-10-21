@@ -102,7 +102,9 @@ cd Alpha-Plugin
 | `DEEPSEEK_API_KEY` | — | DeepSeek Key |
 | `WV_SECRETS_PATH` | `~/.config/wvbar/secrets.env` | 密钥文件位置 |
 | `WV_REALTIME_PROFILE` | `accurate` | `eco`=省额度；`accurate`=每条全量 |
-| `WV_ECO_MODEL` | `deepseek-v4-pro` | 增量模型 |
+| `WV_MODEL_CHUNK` | `deepseek-flash` | 分片摘要模型（V4.1 Flash） |
+| `WV_MODEL_FINAL` | `deepseek-flash` | 汇总/关系判断模型（V4.1 Flash） |
+| `WV_ECO_MODEL` | `deepseek-flash` | 增量模型（V4.1 Flash） |
 | `WV_ECO_BATCH_MESSAGES` / `WV_ECO_BATCH_SECONDS` | 5 / 90 | 实时批次合并 |
 | `WV_SCORE_GAIN` | 1.15 | 分数拉伸系数 |
 | `WV_RELATION_STRICT` | 1 | 严格原文核验 |

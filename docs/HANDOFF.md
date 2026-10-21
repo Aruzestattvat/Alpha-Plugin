@@ -56,7 +56,7 @@ wvcore2.py
    ├─ 语音：按 seq 单条取 media=true → WAV → 本地 Qwen3-ASR 转写
    ├─ 分片分析：每 150 条一片（重叠 10 条）→ deepseek-flash
    ├─ 统计特征：消息数/我对方比/回复中位数/谁先开口/活跃时段/语音数/跨度
-   ├─ 汇总：分片摘要 + 统计 → deepseek-v4-pro（score/delta/reason/dimensions/trajectory）
+   ├─ 汇总：分片摘要 + 统计 → deepseek-flash（V4.1 Flash）（score/delta/reason/dimensions/trajectory）
    ├─ 增量：SSE 收到新消息 → 防抖 3s → 重算最后一片 + 重汇总
    └─ 输出
         ├─ state.json（菜单栏读）
@@ -92,7 +92,7 @@ wvcore2.py
 
 ### LLM
 - 端点：`https://api.deepseek.com/chat/completions`（OpenAI 兼容）
-- 模型：分片 `deepseek-flash`，汇总 `deepseek-v4-pro`（均可从 `/models` 查到）
+- 模型：分片与汇总均为 `deepseek-flash`（V4.1 Flash；均可从 `/models` 查到）
 - 两者都是**思考型模型**：`max_tokens` 需给足（分片 2500 / 汇总 4000），否则 content 为空。
 - `response_format: {"type":"json_object"}` 可用；返回内容需正则提取 `{...}` 兜底。
 - 隐私：全量消息（含语音转写）会发送给 DeepSeek；如需全本地可换 Ollama（同一 OpenAI 兼容接口）。

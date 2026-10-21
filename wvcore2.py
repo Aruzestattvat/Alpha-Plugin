@@ -46,8 +46,9 @@ SECRETS = pathlib.Path(os.environ.get("WV_SECRETS_PATH",
 
 ALPHA_BASE = os.environ.get("ALPHA_BASE", "http://127.0.0.1:5031").rstrip("/")
 DEEPSEEK_BASE = os.environ.get("DEEPSEEK_BASE", "https://api.deepseek.com").rstrip("/")
-MODEL_CHUNK = "deepseek-flash"
-MODEL_FINAL = "deepseek-v4-pro"
+# deepseek-flash = DeepSeek-V4.1-Flash-1017（官方模型 id）
+MODEL_CHUNK = os.environ.get("WV_MODEL_CHUNK", "deepseek-flash")
+MODEL_FINAL = os.environ.get("WV_MODEL_FINAL", "deepseek-flash")
 HTTP_PORT = int(os.environ.get("WV_HTTP_PORT", "8765"))
 
 PAGE_SIZE = 500            # media=true 时服务端单页上限约 500
@@ -67,7 +68,7 @@ ECO_RECAL_SECONDS = int(os.environ.get("WV_ECO_RECAL_SECONDS", str(24 * 3600)))
 RELATION_STRICT = os.environ.get("WV_RELATION_STRICT", "1") != "0"
 # -100..+100 评分尺度：0=中性，正=好感/亲近，负=疏远/冷淡
 SCORE_GAIN = 1.0  # Kept for compatibility; model observations are no longer amplified.
-MODEL_INCREMENTAL = os.environ.get("WV_ECO_MODEL", "deepseek-v4-pro")
+MODEL_INCREMENTAL = os.environ.get("WV_ECO_MODEL", "deepseek-flash")
 RECENT_TREND_MESSAGES = int(os.environ.get("WV_TREND_MESSAGES", "300"))
 RECENT_TREND_WINDOWS = int(os.environ.get("WV_TREND_WINDOWS", "5"))
 RECENT_TREND_MIN_NEW = int(os.environ.get("WV_TREND_MIN_NEW", "30"))

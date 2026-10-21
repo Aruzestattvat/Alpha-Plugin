@@ -90,7 +90,7 @@ def main():
             parts.append(f"[片段{idx+1}] {g}")
         rich_prompt = "\n".join(parts)
         print(f"\nrich prompt（gist 版）字符: {len(rich_prompt)} | tokens ≈ {len(rich_prompt)/1.7:.0f}")
-        rich_obj = wv.llm(key, "deepseek-v4-pro", wv.FINAL_SYSTEM, rich_prompt,
+        rich_obj = wv.llm(key, wv.MODEL_FINAL, wv.FINAL_SYSTEM, rich_prompt,
                           max_tokens=8192, validator=wv.normalize_score)
         print(f"rich score={rich_obj['score']} dims={rich_obj['dimensions']}")
 

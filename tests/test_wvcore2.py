@@ -42,6 +42,7 @@ class Isolated(unittest.TestCase):
                                 WATCHED=root/'watched.json', LOG_PATH=root/'test.log',
                                 AVATARS=root/'avatars', ASR_MODEL_DIR=root/'missing', HTTP_PORT=0,
                                 RELATION_STRICT=False, SCORE_GAIN=1.0, RECENT_TREND_ENABLED=False,
+                                MODEL_CHUNK='deepseek-flash', MODEL_FINAL='deepseek-v4-pro', MODEL_INCREMENTAL='deepseek-v4-pro',
                                 DEBOUNCE_SECONDS=0).items():
             p = patch.object(w, name, value); p.start(); self.addCleanup(p.stop)
         p = patch.object(w, 'load_secrets', return_value={'ALPHA_TOKEN':'test', 'DEEPSEEK_API_KEY':'test'})
