@@ -29,3 +29,8 @@ secrets.env
 
 # 运行时锁文件
 *.lock
+
+# Python/本地配置
+.venv/
+config.env
+secrets.env

@@ -41,10 +41,11 @@ COVER = ROOT / "assets" / "cover.png"
 # ICON SLOT: replace assets/zhijian-logo.png (1024x1024 transparent PNG).
 # Used by dashboard /icon, 知间.app icon and (optionally) menu-bar icon.
 LOGO = ROOT / "assets" / "zhijian-logo.png"
-SECRETS = pathlib.Path.home() / ".config/wvbar/secrets.env"
+SECRETS = pathlib.Path(os.environ.get("WV_SECRETS_PATH",
+    str(pathlib.Path.home() / ".config/wvbar/secrets.env")))
 
-ALPHA_BASE = "http://127.0.0.1:5031"
-DEEPSEEK_BASE = "https://api.deepseek.com"
+ALPHA_BASE = os.environ.get("ALPHA_BASE", "http://127.0.0.1:5031").rstrip("/")
+DEEPSEEK_BASE = os.environ.get("DEEPSEEK_BASE", "https://api.deepseek.com").rstrip("/")
 MODEL_CHUNK = "deepseek-flash"
 MODEL_FINAL = "deepseek-v4-pro"
 HTTP_PORT = int(os.environ.get("WV_HTTP_PORT", "8765"))
@@ -104,8 +105,9 @@ def clear_usage_session():
         pass
 
 
-ASR_MODEL_DIR = pathlib.Path.home() / (
-    "Library/Application Support/Alpha/voice/models/qwen3-asr-0.6b")
+ASR_MODEL_DIR = pathlib.Path(os.environ.get(
+    "WV_ASR_MODEL_DIR",
+    str(pathlib.Path.home() / "Library/Application Support/Alpha/voice/models/qwen3-asr-0.6b")))
 
 
 def log(msg: str) -> None:
@@ -124,6 +126,9 @@ def load_secrets() -> dict:
                 continue
             k, v = line.split("=", 1)
             out[k.strip()] = v.strip().strip('"').strip("'")
+    for key in ("ALPHA_TOKEN", "DEEPSEEK_API_KEY"):
+        if os.environ.get(key):
+            out.setdefault(key, os.environ[key])
     return out
 
 
