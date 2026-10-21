@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/data-Alpha%20local%20API-6f42c1" alt="Alpha">
   <img src="https://img.shields.io/badge/LLM-DeepSeek-4d6bfe" alt="DeepSeek">
   <img src="https://img.shields.io/badge/tests-100%20passing-brightgreen" alt="tests">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
 </p>
 
 macOS 菜单栏应用 + 本地 Web 仪表盘：通过 Alpha 的本地 HTTP API 读取指定会话的完整聊天记录，做分片分析、关系判断与趋势追踪。
@@ -143,4 +144,4 @@ python3 -m unittest discover -s tests -p "test_*.py"
 
 ## 许可
 
-未指定 License。公开分发前请补充合适的许可证（如 MIT / 私有仓库）。
+本项目采用 [MIT License](LICENSE)。Copyright (c) 2026 Alpha Plugin contributors。
