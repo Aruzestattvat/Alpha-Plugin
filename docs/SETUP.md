@@ -28,7 +28,7 @@ Alpha.app（负责解密 + 本地 HTTP API）
 
 ## 1. 准备 Alpha
 
-1. 安装 Alpha，并确认它可以正常读取本机微信 4.x 数据；
+1. 安装 Alpha（官方发布页：[**xunchahaha/alpha-releases**](https://github.com/xunchahaha/alpha-releases)），并确认它可以正常读取本机微信 4.x 数据；
 2. 在 Alpha 中导入/配置**微信加密 key**（Alpha 的设置页/数据源页）；
 3. 启动 Alpha，确认本地 API 可访问：
 

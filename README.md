@@ -14,6 +14,8 @@
 
 macOS 菜单栏应用 + 本地 Web 仪表盘：通过 Alpha 的本地 HTTP API 读取指定会话的完整聊天记录，做分片分析、关系判断与趋势追踪。
 
+> 依赖的 Alpha 原生库 / 官方发布页：[**xunchahaha/alpha-releases**](https://github.com/xunchahaha/alpha-releases)（微信聊天记录本地读取与导出）。
+
 > **微信加密 key 不在这里配置。** 微信数据库由 Alpha 负责解密；本项目只读取 Alpha 已经解密好的本地 API。你只需要在 Alpha 里配置微信 key，然后把 **Alpha API Token** 和 **DeepSeek API Key** 填到本项目。
 
 <p align="center">
