@@ -93,6 +93,19 @@ cd Alpha-Plugin
 | `docs/SETUP.md` | Alpha / 微信 key / 常见问题 |
 | `state.example.json` | 状态文件格式示例（虚构数据） |
 
+## 默认模型策略（混合）
+
+- **分片摘要 / 趋势采样 / 增量分析**：`deepseek-flash`（V4.1 Flash）——量大、任务简单，成本最低；
+- **最终汇总 / 关系判断 / rich 回退**：`deepseek-v4-pro`——涉及长历史综合与关系边界，精度优先。
+
+可用环境变量分别覆盖：
+
+```bash
+WV_MODEL_CHUNK=deepseek-flash
+WV_MODEL_FINAL=deepseek-v4-pro
+WV_ECO_MODEL=deepseek-flash
+```
+
 ## 配置（环境变量 / secrets.env）
 
 | 变量 | 默认 | 说明 |
@@ -103,8 +116,8 @@ cd Alpha-Plugin
 | `WV_SECRETS_PATH` | `~/.config/wvbar/secrets.env` | 密钥文件位置 |
 | `WV_REALTIME_PROFILE` | `accurate` | `eco`=省额度；`accurate`=每条全量 |
 | `WV_MODEL_CHUNK` | `deepseek-flash` | 分片摘要模型（V4.1 Flash） |
-| `WV_MODEL_FINAL` | `deepseek-flash` | 汇总/关系判断模型（V4.1 Flash） |
-| `WV_ECO_MODEL` | `deepseek-flash` | 增量模型（V4.1 Flash） |
+| `WV_MODEL_FINAL` | `deepseek-v4-pro` | 汇总/关系判断/rich 回退（V4 Pro，精度优先） |
+| `WV_ECO_MODEL` | `deepseek-flash` | 增量模型（V4.1 Flash，成本优先） |
 | `WV_ECO_BATCH_MESSAGES` / `WV_ECO_BATCH_SECONDS` | 5 / 90 | 实时批次合并 |
 | `WV_SCORE_GAIN` | 1.15 | 分数拉伸系数 |
 | `WV_RELATION_STRICT` | 1 | 严格原文核验 |

@@ -48,7 +48,7 @@ ALPHA_BASE = os.environ.get("ALPHA_BASE", "http://127.0.0.1:5031").rstrip("/")
 DEEPSEEK_BASE = os.environ.get("DEEPSEEK_BASE", "https://api.deepseek.com").rstrip("/")
 # deepseek-flash = DeepSeek-V4.1-Flash-1017（官方模型 id）
 MODEL_CHUNK = os.environ.get("WV_MODEL_CHUNK", "deepseek-flash")
-MODEL_FINAL = os.environ.get("WV_MODEL_FINAL", "deepseek-flash")
+MODEL_FINAL = os.environ.get("WV_MODEL_FINAL", "deepseek-v4-pro")
 HTTP_PORT = int(os.environ.get("WV_HTTP_PORT", "8765"))
 
 PAGE_SIZE = 500            # media=true 时服务端单页上限约 500
